@@ -75,6 +75,8 @@ void delete_tlb_rows_by_frame(int frame, int tlb_size_temp) {
         }
 }
 
+
+
 void page_table_add(int page, int frame) {
     page_table[page_table_size % COUNT_BACKING_STORE_PAGES][0] = page;
     page_table[page_table_size % COUNT_BACKING_STORE_PAGES][1] = frame;
@@ -85,6 +87,26 @@ void tlb_add(int page, int frame) {
     tlb_table[tlb_size % TLB_SIZE][0] = page;
     tlb_table[tlb_size % TLB_SIZE][1] = frame;
     tlb_size++;
+}
+
+int count_lines(FILE* file) {
+    int count = 0;
+    int data = 0;
+    rewind(file);
+    while (fscanf(file, "%d", &data) == 1) {
+        count++;
+    }
+    return count;
+}
+
+void get_virtual_addresses(FILE* file, int* array) {
+    int i = 0;
+    int data = 0;
+    rewind(file);
+    while (fscanf(file, "%d", &data) == 1) {
+        array[i] = data;
+        i++;
+    }
 }
 
 int main(int argc, char* argv[]) {
@@ -104,10 +126,34 @@ int main(int argc, char* argv[]) {
     int page_faults = 0;
     int total = 0;
 
-    int virtual_address;
-    // while (fscanf(addreses, "%d", &virtual_address) == 1) {
-    while (fscanf(addreses, "%d", &virtual_address) == 1) {
+    int virtual_addresses_count = count_lines(addreses);
+
+    int* virtual_addresses = (int*)malloc(virtual_addresses_count * sizeof(int));
+    get_virtual_addresses(addreses, virtual_addresses);
+
+    // for (int i = 0; i < virtual_addresses_count; i++) {
+    //     printf("%d\n", virtual_addresses[i]);
+    // }
         
+
+
+    // while (fscanf(addreses, "%d", &virtual_address) == 1) {
+    for (int virtual_address_id = 0; virtual_address_id < virtual_addresses_count; virtual_address_id++){
+        // int scan_result = fscanf(addreses, "%d", &virtual_address);
+        // printf("Result: %d\n", scan_result);
+        // if (scan_result != 1)
+        //     break;
+
+        // fseek(file, 0, SEEK_SET);
+        
+        // if (fseek(file, 10 * PAGE_SIZE, SEEK_SET) != 0) {
+        //     perror("Ошибка установки указателя файла");
+        //     fclose(file);
+        //     return 1;
+        // }
+        // printf("%d", virtual_address_id);
+        
+        int virtual_address = virtual_addresses[virtual_address_id];
         int page = virtual_address >> 8;
         int offset = virtual_address & 0x00FF;
         long frame = -1;
@@ -135,7 +181,7 @@ int main(int argc, char* argv[]) {
                     delete_tlb_rows_by_frame(free_page, tlb_size_temp);
                 }
 
-                memcpy(memory + free_page * PAGE_SIZE, backing_store + page * PAGE_SIZE, PAGE_SIZE);
+                // memcpy(memory + free_page * PAGE_SIZE, backing_store + page * PAGE_SIZE, PAGE_SIZE);
                 
                 char read_buffer[PAGE_SIZE];
                 if (fseek(file, page * PAGE_SIZE, SEEK_SET) != 0) {
@@ -143,7 +189,7 @@ int main(int argc, char* argv[]) {
                     fclose(file);
                     return 1;
                 }
-                size_t bytesRead = fread(read_buffer, PAGE_SIZE, PAGE_SIZE, file);
+                size_t bytesRead = fread(read_buffer, 1, PAGE_SIZE, file);
                 memcpy(memory + free_page * PAGE_SIZE, read_buffer, PAGE_SIZE);            
 
                 frame = free_page;
@@ -156,12 +202,13 @@ int main(int argc, char* argv[]) {
             }
             
         }
-
+        
         int value = memory[frame * PAGE_SIZE + offset];
         int phys_addr = frame * PAGE_SIZE + offset;
         
         fprintf(result, "Virtual address: %d Physical address: %d Value: %d\n", virtual_address, phys_addr, value);
         total++;
+        
     }
 
     float tlb_hit_rate = tlb_hits / (float)total;
