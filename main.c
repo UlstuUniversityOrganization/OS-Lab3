@@ -131,28 +131,7 @@ int main(int argc, char* argv[]) {
     int* virtual_addresses = (int*)malloc(virtual_addresses_count * sizeof(int));
     get_virtual_addresses(addreses, virtual_addresses);
 
-    // for (int i = 0; i < virtual_addresses_count; i++) {
-    //     printf("%d\n", virtual_addresses[i]);
-    // }
-        
-
-    int inequality_count = 0;
-    // while (fscanf(addreses, "%d", &virtual_address) == 1) {
     for (int virtual_address_id = 0; virtual_address_id < virtual_addresses_count; virtual_address_id++){
-        // int scan_result = fscanf(addreses, "%d", &virtual_address);
-        // printf("Result: %d\n", scan_result);
-        // if (scan_result != 1)
-        //     break;
-
-        // fseek(file, 0, SEEK_SET);
-        
-        // if (fseek(file, 10 * PAGE_SIZE, SEEK_SET) != 0) {
-        //     perror("Ошибка установки указателя файла");
-        //     fclose(file);
-        //     return 1;
-        // }
-        // printf("%d", virtual_address_id);
-        
         int virtual_address = virtual_addresses[virtual_address_id];
         int page = virtual_address >> 8;
         int offset = virtual_address & 0x00FF;
@@ -180,30 +159,15 @@ int main(int argc, char* argv[]) {
                     delete_page_table_rows_by_frame(free_page, page_table_size_temp);
                     delete_tlb_rows_by_frame(free_page, tlb_size_temp);
                 }
-
-                // memcpy(memory + free_page * PAGE_SIZE, backing_store + page * PAGE_SIZE, PAGE_SIZE);
-                
-                // char test_read_buffer[PAGE_SIZE];
-                // memcpy(test_read_buffer, backing_store + page * PAGE_SIZE, PAGE_SIZE);
-
-                // rewind(file);
                 char read_buffer[PAGE_SIZE];
                 if (fseek(file, page * PAGE_SIZE, SEEK_SET) != 0) {
                     perror("Ошибка установки указателя файла");
                     fclose(file);
                     return 1;
                 }
-                size_t bytesRead = fread(read_buffer, 1, PAGE_SIZE, file);
+                fread(read_buffer, 1, PAGE_SIZE, file);
                 memcpy(memory + free_page * PAGE_SIZE, read_buffer, PAGE_SIZE);
 
-                // for (int uu = 0; uu < PAGE_SIZE; uu++)
-                // {
-                //     if (test_read_buffer[uu] != read_buffer[uu]){
-                //         inequality_count++;
-                //         printf("id: %d      inq: %d     uu: %d\n", virtual_address_id, inequality_count, uu);
-                //         break;
-                //     }
-                // }
                 frame = free_page;
 
                 page_table_add(page, free_page);
