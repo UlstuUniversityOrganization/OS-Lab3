@@ -113,7 +113,7 @@ int main(int argc, char* argv[]) {
     FILE* file = fopen("backing_store.bin", "rb");
     
     fread(backing_store, 1, BACKING_STORE_SIZE, file);
-    fclose(file);
+    
 
     memset(page_table, -1, sizeof(int) * COUNT_BACKING_STORE_PAGES * 2);
     memset(tlb_table, -1, sizeof(int) * TLB_SIZE * 2);
@@ -136,7 +136,7 @@ int main(int argc, char* argv[]) {
     // }
         
 
-
+    int inequality_count = 0;
     // while (fscanf(addreses, "%d", &virtual_address) == 1) {
     for (int virtual_address_id = 0; virtual_address_id < virtual_addresses_count; virtual_address_id++){
         // int scan_result = fscanf(addreses, "%d", &virtual_address);
@@ -183,6 +183,10 @@ int main(int argc, char* argv[]) {
 
                 // memcpy(memory + free_page * PAGE_SIZE, backing_store + page * PAGE_SIZE, PAGE_SIZE);
                 
+                // char test_read_buffer[PAGE_SIZE];
+                // memcpy(test_read_buffer, backing_store + page * PAGE_SIZE, PAGE_SIZE);
+
+                // rewind(file);
                 char read_buffer[PAGE_SIZE];
                 if (fseek(file, page * PAGE_SIZE, SEEK_SET) != 0) {
                     perror("Ошибка установки указателя файла");
@@ -190,8 +194,16 @@ int main(int argc, char* argv[]) {
                     return 1;
                 }
                 size_t bytesRead = fread(read_buffer, 1, PAGE_SIZE, file);
-                memcpy(memory + free_page * PAGE_SIZE, read_buffer, PAGE_SIZE);            
+                memcpy(memory + free_page * PAGE_SIZE, read_buffer, PAGE_SIZE);
 
+                // for (int uu = 0; uu < PAGE_SIZE; uu++)
+                // {
+                //     if (test_read_buffer[uu] != read_buffer[uu]){
+                //         inequality_count++;
+                //         printf("id: %d      inq: %d     uu: %d\n", virtual_address_id, inequality_count, uu);
+                //         break;
+                //     }
+                // }
                 frame = free_page;
 
                 page_table_add(page, free_page);
@@ -217,6 +229,7 @@ int main(int argc, char* argv[]) {
 
     fclose(addreses);
     fclose(result);
+    fclose(file);
 
     return 0;
 }
